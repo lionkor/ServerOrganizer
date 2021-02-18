@@ -1,8 +1,10 @@
 #ifndef SERVERORGANIZER_COMMON_H
 #define SERVERORGANIZER_COMMON_H
 
+#include <algorithm>
 #include <array>
 #include <ctime>
+#include <iterator>
 #include <string>
 
 static constexpr auto SOCKET_FILENAME = "/tmp/.sohs_socket_1_0";
@@ -25,44 +27,38 @@ static inline const std::string Detach = "_do_detach_now";
 }
 
 // from https://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring
-
 // trim from start (in place)
-static inline void ltrim(std::string& s) {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
-        return !std::isspace(ch);
-    }));
-}
-
+static void ltrim(std::string& s);
 // trim from end (in place)
-static inline void rtrim(std::string& s) {
-    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
-        return !std::isspace(ch);
-    }).base(),
-        s.end());
-}
-
+static void rtrim(std::string& s);
 // trim from both ends (in place)
-static inline void trim(std::string& s) {
-    ltrim(s);
-    rtrim(s);
-}
-
+static void trim(std::string& s);
 // trim from start (copying)
-static inline std::string ltrim_copy(std::string s) {
-    ltrim(s);
-    return s;
-}
-
+static std::string ltrim_copy(std::string s);
 // trim from end (copying)
-static inline std::string rtrim_copy(std::string s) {
-    rtrim(s);
-    return s;
+static std::string rtrim_copy(std::string s);
+// trim from both ends (copying)
+static std::string trim_copy(std::string s);
+
+// original
+std::vector<std::string> extract_args(const std::string& command);
+
+// from http://www.martinbroadhurst.com/how-to-split-a-string-in-c.html
+template<class Container>
+void split(const std::string& str, Container& cont, char delim = ' ') {
+    std::size_t current, previous = 0;
+    current = str.find(delim);
+    while (current != std::string::npos) {
+        cont.push_back(str.substr(previous, current - previous));
+        previous = current + 1;
+        current = str.find(delim, previous);
+    }
+    cont.push_back(str.substr(previous, current - previous));
 }
 
-// trim from both ends (copying)
-static inline std::string trim_copy(std::string s) {
-    trim(s);
-    return s;
-}
+// these are shared interfaces, implemented differently on client- and server-side
+void error(const std::string& str);
+void warn(const std::string& str);
+void info(const std::string& str);
 
 #endif //SERVERORGANIZER_COMMON_H

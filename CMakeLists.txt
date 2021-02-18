@@ -14,13 +14,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra --pedantic")
 
 add_executable(ServerOrganizer
         src/main.cpp
-        src/ArgsParser.cpp src/ArgsParser.h
-        src/Common.cpp src/Common.h)
+        src/Common.cpp src/Common.h
+        src/ServerOrganizer.cpp src/ServerOrganizer.h)
 
 add_executable(ServerOrganizer_HeadlessServer
         src/server.cpp
-        src/ArgsParser.cpp src/ArgsParser.h
-        src/Common.cpp src/Common.h)
+        src/Common.cpp src/Common.h
+        src/ServerOrganizer.cpp src/ServerOrganizer.h)
 
 target_include_directories(ServerOrganizer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(ServerOrganizer commandline pthread)

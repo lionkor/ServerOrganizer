@@ -32,6 +32,7 @@ void error(const std::string& str) {
     com.write("[" + get_date_time_string() + "] [ERROR] " + str);
 }
 
+void server_print(const std::string& str);
 void server_print(const std::string& str) {
     com.write("[" + get_date_time_string() + "] [SERVER] " + str);
 }
