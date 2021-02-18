@@ -56,11 +56,23 @@ struct Client {
     int socket_fd;
 };
 
+Message process_message(Message&& msg) {
+    info("got command: \"" + msg.to_string() + "\"");
+    Message response {};
+    auto str = msg.to_string();
+    if (str == "kickme") {
+        response = Message::from_string(Command::Detach);
+    } else {
+        response = Message::from_string("unknown command");
+    }
+    return response;
+}
+
 void run_client(Client&& client) {
     info("client connected");
     struct msghdr msg { };
     // make socket non-blocking
-    fcntl(client.socket_fd, F_SETFL, O_NONBLOCK);
+    // fcntl(client.socket_fd, F_SETFL, O_NONBLOCK);
     int err = 0;
     socklen_t len = sizeof(err);
     while (getsockopt(client.socket_fd, SOL_SOCKET, SO_ERROR, &err, &len) == 0 && err == 0) {
@@ -68,19 +80,27 @@ void run_client(Client&& client) {
             info("client connection died");
             break;
         }
-        std::array<char, 1024> data;
+        std::array<char, 1024> data {};
         int ret = recv(client.socket_fd, data.data(), data.size(), MSG_WAITALL);
         if (ret != data.size()) {
-            error("received invalid size message: " + std::to_string(ret) + " due to error: " + std::string(std::strerror(errno)));
+            error("error: received invalid size message: " + std::to_string(ret) + ", with error: " + std::string(std::strerror(errno)));
+            break;
         }
-        ret = send(client.socket_fd, data.data(), data.size(), MSG_NOSIGNAL);
-        if (ret != 0) {
-            error("err during send: " + std::string(std::strerror(errno)));
-            info("detaching due to err");
-            detach();
+        Message response_message = process_message(Message::deserialize(data));
+        auto response = response_message.serialize();
+        ret = send(client.socket_fd, response.data(), response.size(), MSG_NOSIGNAL);
+        if (ret != response.size()) {
+            error("error during send: " + std::string(std::strerror(errno)));
+            break;
+        }
+        if (response_message.to_string() == Command::Detach) {
+            info("kicked client with detach request, closing connection");
+            break;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
+    shutdown(client.socket_fd, SHUT_RDWR);
+    close(client.socket_fd);
     info("client disconnected");
 }
 

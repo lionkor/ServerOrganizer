@@ -32,12 +32,16 @@ void error(const std::string& str) {
     com.write("[" + get_date_time_string() + "] [ERROR] " + str);
 }
 
+void server_print(const std::string& str) {
+    com.write("[" + get_date_time_string() + "] [SERVER] " + str);
+}
+
 int socket_fd = -1;
 bool attached { false };
 
 namespace commands {
 static constexpr auto help_str = "list of all commands:\n"
-                                 "* attach - attempts to attach to a running instance of the ServerOrganizer headless server)\n"
+                                 "* attach - attempts to attach to a running instance of the ServerOrganizer headless server\n"
                                  "* help - displays this help\n";
 void attach(const std::string&) {
     struct stat st { };
@@ -76,6 +80,32 @@ void detach() {
     info("detached");
 }
 
+bool send_to_server(const std::string& str) {
+    Message msg = Message::from_string(str);
+    auto data = msg.serialize();
+    int ret = send(socket_fd, data.data(), data.size(), MSG_NOSIGNAL);
+    if (ret != data.size()) {
+        error("error during send: " + std::string(std::strerror(errno)));
+        info("detaching due to error");
+        detach();
+        return false;
+    }
+    return true;
+}
+
+std::string recv_from_server() {
+    std::array<char, 1024> data {};
+    int ret = recv(socket_fd, data.data(), data.size(), MSG_WAITALL);
+    if (ret != data.size()) {
+        error("error: received invalid size message: " + std::to_string(ret) + ", with error: " + std::string(std::strerror(errno)));
+        detach();
+        return "";
+    } else {
+        auto msg = Message::deserialize(data);
+        return msg.to_string();
+    }
+}
+
 int main() {
     std::map<std::string, std::function<void(const std::string&)>> command_function_map = {
         { "attach", commands::attach },
@@ -91,18 +121,23 @@ int main() {
     while (!shutdown) {
         if (com.has_command()) {
             auto command = com.get_command();
+            trim(command);
             com.write(com.prompt() + command);
             if (attached) {
                 if (command == "exit") {
                     detach();
                 } else {
-                    Message msg = Message::from_string(command);
-                    auto data = msg.serialize();
-                    int ret = send(socket_fd, data.data(), data.size(), MSG_NOSIGNAL);
-                    if (ret != 0) {
-                        error("error during send: " + std::string(std::strerror(errno)));
-                        info("detaching due to error");
-                        detach();
+                    bool success = send_to_server(command);
+                    if (success) {
+                        std::string msg = recv_from_server();
+                        if (msg.empty()) {
+                            // error, already handled, ignore
+                        } else if (msg == Command::Detach) {
+                            server_print("request for the client to detach immediately (kicked)");
+                            detach();
+                        } else {
+                            server_print(msg);
+                        }
                     }
                 }
             } else {
