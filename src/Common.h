@@ -5,9 +5,9 @@
 #include <ctime>
 #include <string>
 
-static constexpr auto SOCKET_FILENAME = "sohs_socket_1_0";
+static constexpr auto SOCKET_FILENAME = "/tmp/.sohs_socket_1_0";
 
-std::string generate_logfile_name();
+std::string generate_logfile_name(const std::string& prefix);
 std::string get_date_time_string();
 
 struct Message {
@@ -21,7 +21,7 @@ struct Message {
 };
 
 namespace Command {
-static inline const std::string Detach = "do_detach_now";
+static inline const std::string Detach = "_do_detach_now";
 }
 
 // from https://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring

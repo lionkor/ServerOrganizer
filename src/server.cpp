@@ -4,7 +4,9 @@
 #include <fcntl.h>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iostream>
+#include <map>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -56,12 +58,28 @@ struct Client {
     int socket_fd;
 };
 
+namespace serverside_commands {
+std::string help(const std::string&) {
+    return "no help available yet";
+}
+std::string register_new(const std::string&) {
+    return "registered";
+}
+}
+
+std::map<std::string, std::function<std::string(const std::string&)>> command_function_map = {
+    { "help", serverside_commands::help },
+    { "register", serverside_commands::register_new },
+};
+
 Message process_message(Message&& msg) {
     info("got command: \"" + msg.to_string() + "\"");
     Message response {};
     auto str = msg.to_string();
     if (str == "kickme") {
         response = Message::from_string(Command::Detach);
+    } else if (command_function_map.contains(str)) {
+        response = Message::from_string(command_function_map.at(str)(str));
     } else {
         response = Message::from_string("unknown command");
     }
@@ -70,7 +88,6 @@ Message process_message(Message&& msg) {
 
 void run_client(Client&& client) {
     info("client connected");
-    struct msghdr msg { };
     // make socket non-blocking
     // fcntl(client.socket_fd, F_SETFL, O_NONBLOCK);
     int err = 0;
@@ -139,7 +156,7 @@ int main(int argc, char* argv[]) {
         mkdir("logs", 0700);
     }
     // DONT LOG BEFORE THIS POINT
-    logfile.open("logs/" + generate_logfile_name());
+    logfile.open("logs/" + generate_logfile_name("ServerOrganizer_HeadlessServer"));
     info("working directory: " + cwd.string());
     if (clean) {
         info("cleaning up previous runs");

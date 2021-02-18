@@ -48,7 +48,7 @@ void attach(const std::string&) {
     if (socket_fd != -1) {
         error("already attached");
     } else if (stat(SOCKET_FILENAME, &st) != 0) {
-        error("could not attach - ensure that we're in the server's working directory");
+        error("could not attach - ensure that the server is running");
     } else {
         info("attaching...");
         socket_fd = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -114,7 +114,7 @@ int main() {
     com.set_prompt("local > ");
     com.enable_history();
     com.set_history_limit(40);
-    com.enable_write_to_file(generate_logfile_name());
+    com.enable_write_to_file(generate_logfile_name("ServerOrganizer"));
     info("ServerOrganizer v1.0");
     struct stat st { };
     bool shutdown { false };
@@ -155,7 +155,7 @@ int main() {
                 }
             }
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
     return 0;
 }

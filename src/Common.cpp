@@ -8,12 +8,12 @@ std::string get_date_time_string() {
     strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tstruct);
     return buf;
 }
-std::string generate_logfile_name() {
+std::string generate_logfile_name(const std::string& prefix) {
     time_t now = time(nullptr);
     struct tm tstruct { };
     char buf[128];
     tstruct = *localtime(&now);
-    strftime(buf, sizeof(buf), "ServerOrganizer_HeadlessServer_%F_%H%M%S.log", &tstruct);
+    strftime(buf, sizeof(buf), (prefix + "_%F_%H%M%S.log").c_str(), &tstruct);
     return std::string(buf);
 }
 std::array<char, sizeof(Message)> Message::serialize() {
