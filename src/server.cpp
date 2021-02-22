@@ -1,6 +1,7 @@
 #include "Common.h"
 #include "ServerOrganizer.h"
 #include <csignal>
+#include <cstring>
 #include <fcntl.h>
 #include <filesystem>
 #include <fstream>
@@ -58,7 +59,6 @@ int main(int argc, char* argv[]) {
             return -1;
         }
     }
-    std::cout << "ServerOrganizer v1.0 Headless Server" << std::endl;
     signal(SIGTERM, signal_handler);
     signal(SIGINT, signal_handler);
     struct stat st { };

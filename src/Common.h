@@ -11,6 +11,7 @@ static constexpr auto SOCKET_FILENAME = "/tmp/.sohs_socket_1_0";
 
 std::string generate_logfile_name(const std::string& prefix);
 std::string get_date_time_string();
+std::string get_time_string();
 
 struct Message {
     char data[1024] {};
@@ -28,17 +29,17 @@ static inline const std::string Detach = "_do_detach_now";
 
 // from https://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring
 // trim from start (in place)
-static void ltrim(std::string& s);
+void ltrim(std::string& s);
 // trim from end (in place)
-static void rtrim(std::string& s);
+void rtrim(std::string& s);
 // trim from both ends (in place)
-static void trim(std::string& s);
+void trim(std::string& s);
 // trim from start (copying)
-static std::string ltrim_copy(std::string s);
+std::string ltrim_copy(std::string s);
 // trim from end (copying)
-static std::string rtrim_copy(std::string s);
+std::string rtrim_copy(std::string s);
 // trim from both ends (copying)
-static std::string trim_copy(std::string s);
+std::string trim_copy(std::string s);
 
 // original
 std::vector<std::string> extract_args(const std::string& command);

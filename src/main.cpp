@@ -21,20 +21,20 @@
 static Commandline com {};
 
 void info(const std::string& str) {
-    com.write("[" + get_date_time_string() + "] [INFO] " + str);
+    com.write("[" + get_time_string() + "] [INFO] " + str);
 }
 
 void warn(const std::string& str) {
-    com.write("[" + get_date_time_string() + "] [WARNING] " + str);
+    com.write("[" + get_time_string() + "] [WARNING] " + str);
 }
 
 void error(const std::string& str) {
-    com.write("[" + get_date_time_string() + "] [ERROR] " + str);
+    com.write("[" + get_time_string() + "] [ERROR] " + str);
 }
 
 void server_print(const std::string& str);
 void server_print(const std::string& str) {
-    com.write("[" + get_date_time_string() + "] [SERVER] " + str);
+    com.write("[" + get_time_string() + "] [SERVER] " + str);
 }
 
 int socket_fd = -1;
@@ -43,7 +43,7 @@ bool attached { false };
 namespace commands {
 static constexpr auto help_str = "list of all commands:\n"
                                  "* attach - attempts to attach to a running instance of the ServerOrganizer headless server\n"
-                                 "* help - displays this help\n";
+                                 "* help - displays this help";
 void attach(const std::string&) {
     struct stat st { };
     if (socket_fd != -1) {

@@ -8,6 +8,16 @@ std::string get_date_time_string() {
     strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tstruct);
     return buf;
 }
+
+std::string get_time_string() {
+    time_t now = time(nullptr);
+    struct tm tstruct { };
+    char buf[80];
+    tstruct = *localtime(&now);
+    strftime(buf, sizeof(buf), "%H:%M:%S", &tstruct);
+    return buf;
+}
+
 std::string generate_logfile_name(const std::string& prefix) {
     time_t now = time(nullptr);
     struct tm tstruct { };
